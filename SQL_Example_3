@@ -20,7 +20,7 @@ b.	Adet alanının negatif olamaması kontrolü
 Adet İNT CHECK(Adet>=0),
 
 3.	Oluşturulan her tabloya parçalı ve tam dolu kayıt girişlerini yapan SQL ifadelerini yazınız. (Tekli ve çoklu kayıt girişleri kullanarak)
-a.	4 tane yayınevi kaydı girişi
+a.	4 tane yayınevi kaydı girişi..
 --Tam dolu giriş
 INSERT INTO yayınevi
 VALUES(1,’A’,’B’,’10’,’15268’,’www.site.com’);
