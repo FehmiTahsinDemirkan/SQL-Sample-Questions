@@ -1,0 +1,351 @@
+
+1.	Yukarıdaki tabloları gerekli veri türleri, birincil/yabancı anahtarlar, silme/güncelleme işlemlerinin gerekli yerleri de etkilemesi ve aşağıda belirtilen kısıtlamalara ve özelliklere göre oluşturan SQL ifadelerini yazınız. 
+a.	Tel alanındaki örnek yapı kontrolü (380-5142789)
+TEL VARCHAR(20) CHECK (TEL LIKE '380-[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+b.	Web adresindeki örnek yapı kontrolü (www.pusula.com)
+WEBADRESİ VARCHAR(255) CHECK (WEBADRESİ LIKE 'WWW.%')
+c.	Birim fiyatın negatif olamaması kontrolü
+BirimFiyat DECİMAL(10,2) CHECK(BirimFiyat>=0
+d.	Kitap ve yazar adlarının ve müşteri ad/soyadlarının harflerden oluşması kontrolü
+KİTAPADİ VARCHAR(255) CHECK (KİTAPADİ NOT LIKE '%[^A-ZA-Z]%'),
+    YAZARADİ VARCHAR(255) CHECK (YAZARADİ NOT LIKE '%[^A-ZA-Z]%'),
+
+e.	İl kodu alanının pozitif sayılardan oluşması
+İlkodu INT PRIMARY KEY CHECK(İlkodu>=0),
+f.	Tarih alanındaki verilerin sistem tarihinden büyük olamaması, boş geçilirse sistem tarihinin yazılması
+2.	    Tarih DATE DEFAULT GETDATE() CHECK (Tarih <= GETDATE()),
+a.	Kategori alanına sadece “Programlama, Grafik-Tasarım, Network, Genel, Veritabanı” verilerinin girilebilmesi
+Kategori VARCHAR(255) CHECK(Kategori IN(’Programlama’, ‘Grafik-Tasarım’, ‘Network’, ‘Genel’, ‘Veritabanı’),
+b.	Adet alanının negatif olamaması kontrolü
+Adet İNT CHECK(Adet>=0),
+
+3.	Oluşturulan her tabloya parçalı ve tam dolu kayıt girişlerini yapan SQL ifadelerini yazınız. (Tekli ve çoklu kayıt girişleri kullanarak)
+a.	4 tane yayınevi kaydı girişi
+--Tam dolu giriş
+INSERT INTO yayınevi
+VALUES(1,’A’,’B’,’10’,’15268’,’www.site.com’);
+--Parçalı Giriş
+INSERT INTO yayınevi(YayınEviNo,YayınEviAdı)
+VALUES(1,’AS’);
+b.	7 tane kitap kaydı girişi
+
+c.	10 tane satış kaydı girişi
+d.	5 tane il kaydı girişi
+e.	3 tane müşteri kaydı girişi
+
+4.	Girilmiş olan kayıtlar üzerinde aşağıdaki güncellemeleri yapan SQL ifadelerini yazınız. 
+a.	Soyadı boş bırakılmış olan müşterilerin soyad’larına ‘UNKNOWN’ yazdırılması
+UPTADE müşteri
+SET soyad=’UNKNOWN’
+WHERE soyad IS NULL OR TRIM(soyad)=’’;
+b.	Yayınevi adlarının ilk harfi büyük, diğer harfleri küçük olacak şekilde yazdırılması
+UPDATE yayınevi
+SET yayıneviAd=CONCAT(UPPER(SUBSTRING(yayıneviAd,1,1)),LOWER(SUBSTRING(yayıneviAd,2));
+c.	Kitap isimlerinin tüm harfleri büyük olacak şekilde yazdırılması
+UPDATE kitap
+SET kitap=UPPER(kitap);
+d.	“Com” uzantılı olan web sayfası adreslerinin “org” uzantılı hale çevrilmesi
+UPDATE websayfası
+SET adres=REPLACE(adres,’com’,’org’);
+WHERE adres LIKE ‘%.com’;
+e.	İsmi 5 harfli ve içinde “Ş” harfi geçen kayıtların silinmesi
+DELETE FROM Musteriler
+WHERE LEN(Ad) = 5 AND Ad LIKE '%Ş%';
+
+5.	Girilmiş olan kayıtlar üzerinde aşağıda belirtilen silme işlemlerini yapan SQL ifadelerini yazınız.
+a.	İsmi 5 harfli ve içinde “Ş” harfi geçen kayıtların silinmesi
+DELETE from kitap
+WHERE LENG(kitapismi)=5 AND kitapismi LIKE ‘%Ş%’
+b.	Kars ilinden olan müşterilerin silinmesi
+DELETE from Musteriler
+WHERE musİl=’Kars’
+c.	“C#” kitabını almış olan Ankara’lı müşterilere dair kayıtların satışlar tablosundan silinmesi
+DELETE FROM satış
+WHERE müşteri_id IN (SELECT id FROM müşteri WHERE il = 'Ankara')
+AND kitap_id = (SELECT id FROM kitap WHERE isim = 'C#'
+d.	???Belirteceğiniz kişinin, yetkili kişisi olduğu yayınevine ait olan kitaplara ait satış kayıtlarının silinmesi
+DECLARE @yetkili_id INT;
+SET @yetkili_id = 1;
+ -- Örnek olarak yetkili kişi ID'si 1 olarak kabul ediliyor.
+
+-- Yetkili kişinin bağlı olduğu yayınevi ID'sini bulma
+DECLARE @yayinevi_id INT;
+SELECT @yayinevi_id = yayinevi_id FROM yetkili WHERE id = @yetkili_id;
+
+
+-- Belirtilen yayıneviye ait kitaplara ait satış kayıtlarını silme
+DELETE FROM satış
+WHERE kitap_id IN (SELECT id FROM kitap WHERE yayinevi_id = @yayinevi_id);
+
+6.	Girilmiş olan kayıtlara göre, aşağıda istenilen listeleme işlemlerini yapan SQL ifadelerini yapınız. (Çoklu tablo kullanımı gereken şıkları önce “alt sorgular” kullanarak, sonra da “Join” çeşitlerinden uygun olanları kullanarak yapınız.)
+a.	Kendi seçeceğiniz bir “kitap adına” ait satış kayıtlarını listeleyin
+SELECT * FROM satış Where=kitap_id(SELECT id FROM kitap WHERE isim=’seçilenkitap’);
+b.	Kendi seçeceğiniz bir “müşteri adına” dair satış kayıtlarını listeleyin
+SELECT * From Satıs where müşteriıd=(SELECT İD FROM MÜSTERİ WHERE İSİM=’seçilen isim’);
+c.	???Kendi seçeceğiniz bir “kitab adını” almış olan müşteri isimlerini listeleyin
+SELECT m.isim AS müşteri_isim
+FROM müşteri m
+JOIN satış s ON m.id = s.müşteri_id
+WHERE s.kitap_id = (SELECT id FROM kitap WHERE isim = 'Seçilen_Kitap_Adı');
+d.	Kendi seçeceğiniz bir yayınevi adına ait olan kitapları almış olan müşterilerin adlarını listeleyin
+SELECT Ad, Soyad
+FROM Musteriler
+WHERE MusteriNo IN (
+    SELECT DISTINCT S.MusteriNo
+    FROM Satislar S
+    JOIN Kitaplar K ON S.KitapNo = K.KitapNo
+    JOIN Yayinevleri Y ON K.YayineviNo = Y.YayineviNo
+    WHERE Y.YayineviAdi = 'ABC Yayınevi'
+);
+e.	Birim fiyatı, belirteceğiniz rakamdan daha fazla olan kitaplara ait kaç satış kaydı olduğunu listeleyin
+SELECT COUNT(*) AS SatısSayisi
+FROM Satislar
+WHERE KitapNo IN (
+    SELECT KitapNo
+    FROM Kitaplar
+    WHERE BirimFiyat > 50
+);
+f.	Ankara’lı müşterilerin, kaç tane “Programlama” kitabı aldığını listeleyin
+SELECT IlAdi, COUNT(*) AS KitapSayisi
+FROM Musteriler M
+JOIN Iller I ON M.Ilkodu = I.Ilkodu
+JOIN Satislar S ON M.MusteriNo = S.MusteriNo
+JOIN Kitaplar K ON S.KitapNo = K.KitapNo
+WHERE I.IlAdi = 'Ankara' AND K.Kategori = 'Programlama'
+GROUP BY IlAdi;
+g.	Hiç kitabı satılmayan yayınevi varsa, adını listeleyin
+SELECT Y.YayineviAdi
+FROM Yayinevleri Y
+LEFT JOIN Kitaplar K ON Y.YayineviNo = K.YayineviNo
+WHERE K.KitapNo IS NULL;
+7.	Aşağıdaki işlemleri yapacak olan stored procedure(sp)’leri yazınız.
+a.	Müşteriler tablosundaki tüm kayıtları listeleyen sp
+CREATE PROCEDURE ListAllCustomers
+AS
+BEGIN
+    SELECT * FROM Musteriler;
+END;
+b.	Girilen kitap adının satış kayıtlarını listeleyen sp
+CREATE PROCEDURE ListSalesByBookName
+    @KitapAdi VARCHAR(255)
+AS
+BEGIN
+    SELECT S.SatNo, S.Tarih, S.Adet, K.KitapAdi, M.Ad AS MusteriAdi
+    FROM Satislar AS S
+    INNER JOIN Kitaplar AS K ON S.KitapNo = K.KitapNo
+    INNER JOIN Musteriler AS M ON S.MusteriNo = M.MusteriNo
+    WHERE K.KitapAdi = @KitapAdi;
+END;
+
+c.	Adı girilen yayınevi’nin toplam kaç adet kitabı satıldığını veren sp
+CREATE PROCEDURE TotalBooksSoldByPublisher
+    @YayineviAdi VARCHAR(255)
+AS
+BEGIN
+    SELECT Y.YayineviAdi, COUNT(*) AS ToplamSatilanKitap
+    FROM Satislar AS S
+    INNER JOIN Kitaplar AS K ON S.KitapNo = K.KitapNo
+    INNER JOIN Yayinevleri AS Y ON K.YayineviNo = Y.YayineviNo
+    WHERE Y.YayineviAdi = @YayineviAdi
+    GROUP BY Y.YayineviAdi;
+END;
+
+d.	Adı girilen yayınevinin tüm kitaplarının birim fiyatlarına %10 zam yapan sp
+CREATE PROCEDURE IncreasePriceByTenPercent
+    @YayineviAdi VARCHAR(255)
+AS
+BEGIN
+    UPDATE Kitaplar
+    SET BirimFiyat = BirimFiyat * 1.10
+    WHERE YayineviNo = (SELECT YayineviNo FROM Yayinevleri WHERE YayineviAdi = @YayineviAdi);
+END;
+e.	Hiç satışı olmayan kitapların birim fiyatlarına %20 indirim yapan sp
+CREATE PROCEDURE DiscountPriceForUnsoldBooks
+AS
+BEGIN
+    UPDATE Kitaplar
+    SET BirimFiyat = BirimFiyat * 0.80
+    WHERE KitapNo NOT IN (SELECT KitapNo FROM Satislar);
+END;
+f.	En çok satılmış olan kitabın adı ve yayınevi adını listeleyen sp
+CREATE PROCEDURE MostSoldBook
+AS
+BEGIN
+    SELECT TOP 1 K.KitapAdi, Y.YayineviAdi
+    FROM Satislar AS S
+    INNER JOIN Kitaplar AS K ON S.KitapNo = K.KitapNo
+    INNER JOIN Yayinevleri AS Y ON K.YayineviNo = Y.YayineviNo
+    GROUP BY K.KitapAdi, Y.YayineviAdi
+    ORDER BY COUNT(S.SatNo) DESC;
+END;
+
+g.	En çok alışveriş yapmış olan müşterinin ismin ekranda listeleyen sp
+CREATE PROCEDURE MostActiveCustomer
+AS
+BEGIN
+    SELECT TOP 1 M.Ad
+    FROM Satislar AS S
+    INNER JOIN Musteriler AS M ON S.MusteriNo = M.MusteriNo
+    GROUP BY M.Ad
+    ORDER BY COUNT(S.SatNo) DESC;
+END;
+
+
+
+
+
+
+
+
+
+
+TABLOLARI OLUŞTURMAK İÇİN SQL KODLARI:
+CREATE TABLE Iller (
+    Ilkodu INT PRIMARY KEY,
+    IlAdi VARCHAR(255)
+);
+
+-- Musteriler Tablosu
+CREATE TABLE Musteriler (
+    MusteriNo INT PRIMARY KEY,
+    Ad VARCHAR(255),
+    Soyad VARCHAR(255),
+    Tel VARCHAR(20),
+    Ilkodu INT FOREIGN KEY REFERENCES Iller(Ilkodu)CHECK(Ilkodu>=0)
+);
+
+-- Yayinevleri Tablosu
+CREATE TABLE Yayinevleri (
+    YayineviNo INT PRIMARY KEY,
+    YayineviAdi VARCHAR(255),
+    Yetkili VARCHAR(255),
+    TEL VARCHAR(20) CHECK (TEL LIKE '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+    WEBADRESİ VARCHAR(255) CHECK (WEBADRESİ LIKE 'www.%')
+);
+
+-- Kitaplar Tablosu
+CREATE TABLE Kitaplar (
+    KitapNo INT PRIMARY KEY,
+    KitapAdi VARCHAR(255) CHECK (KitapAdi NOT LIKE '%[^A-ZA-Z]%'),
+    YazarAdi VARCHAR(255) CHECK (YazarAdi NOT LIKE '%[^A-ZA-Z]%'),
+    BirimFiyat INT CHECK(BirimFiyat>=0),
+    BasimYili INT,
+    Kategori VARCHAR(255)CHECK(Kategori IN ('Programlama','Grafik-Tasarım','Network','Genel','Veritabanı')),
+    YayineviNo INT FOREIGN KEY REFERENCES Yayinevleri(YayineviNo)
+);
+
+-- Satislar Tablosu
+CREATE TABLE Satislar (
+    SatNo INT PRIMARY KEY,
+    Tarih DATE CHECK(Tarih IS NULL OR Tarih<=GETDATE()),
+    Adet INT CHECK(Adet>=0),
+    KitapNo INT FOREIGN KEY REFERENCES Kitaplar(KitapNo),
+    MusteriNo INT FOREIGN KEY REFERENCES Musteriler(MusteriNo)
+);
+//RASTGELE TAM DOLU 10 VERİ GİRİŞİ
+-- Iller Tablosuna Veri Ekleme
+INSERT INTO Iller (Ilkodu, IlAdi) VALUES
+(1, 'İstanbul'),
+(2, 'Ankara'),
+(3, 'İzmir'),
+(4, 'Bursa'),
+(5, 'Adana'),
+(6, 'Antalya'),
+(7, 'Eskişehir'),
+(8, 'Trabzon'),
+(9, 'Samsun'),
+(10, 'Diyarbakır');
+
+-- Musteriler Tablosuna Veri Ekleme
+INSERT INTO Musteriler (MusteriNo, Ad, Soyad, Tel, Ilkodu) VALUES
+(101, 'Ahmet', 'Yılmaz', '555-1234567', 1),
+(102, 'Ayşe', 'Kaya', '532-9876543', 2),
+(103, 'Mehmet', 'Öztürk', '541-8765432', 3),
+(104, 'Zeynep', 'Aydın', '505-1122334', 4),
+(105, 'Emre', 'Demir', '530-4455667', 5),
+(106, 'Fatma', 'Çelik', '536-1122334', 6),
+(107, 'Hakan', 'Aksoy', '505-3344556', 7),
+(108, 'Gizem', 'Demirtaş', '531-2233445', 8),
+(109, 'Eren', 'Bulut', '537-7788990', 9),
+(110, 'Deniz', 'Güneş', '534-9900112', 10);
+
+-- Yayinevleri Tablosuna Veri Ekleme
+INSERT INTO Yayinevleri (YayineviNo, YayineviAdi, Yetkili, TEL, WEBADRESİ) VALUES
+(201, 'ABC Yayınevi', 'Ali Yılmaz', '555-1112233', 'www.abcyayinevi.com'),
+(202, 'XYZ Yayınevi', 'Zeynep Ay', '532-4455667', 'www.xyzyayinevi.com'),
+(203, '123 Yayınevi', 'Mehmet Öztürk', '541-7788990', 'www.123yayinevi.com'),
+(204, '456 Yayınevi', 'Ayşe Kaya', '505-1122334', 'www.456yayinevi.com'),
+(205, '789 Yayınevi', 'Emre Demir', '530-9988776', 'www.789yayinevi.com'),
+(206, 'KLM Yayınevi', 'Fatma Çelik', '536-2233445', 'www.klmyayinevi.com'),
+(207, 'NOP Yayınevi', 'Hakan Aksoy', '505-3344556', 'www.nopyayinevi.com'),
+(208, 'PQR Yayınevi', 'Gizem Demirtaş', '531-5566778', 'www.pqryayinevi.com'),
+(209, 'STU Yayınevi', 'Eren Bulut', '537-8899001', 'www.stuyayinevi.com'),
+(210, 'VWX Yayınevi', 'Deniz Güneş', '534-0011223', 'www.vwxyayinevi.com');
+
+-- Kitaplar Tablosuna Veri Ekleme
+INSERT INTO Kitaplar (KitapNo, KitapAdi, YazarAdi, BirimFiyat, BasimYili, Kategori, YayineviNo) VALUES
+(301, 'Programlama Temelleri', 'Ahmet Yılmaz', 50, 2020, 'Programlama', 201),
+(302, 'Grafik Tasarım İlkeleri', 'Zeynep Ay', 40, 2019, 'Grafik-Tasarım', 202),
+(303, 'Ağ Teknolojileri', 'Mehmet Öztürk', 60, 2021, 'Network', 203),
+(304, 'Genel Bilgi Kaynağı', 'Ayşe Kaya', 45, 2018, 'Genel', 204),
+(305, 'Veritabanı Yönetimi', 'Emre Demir', 55, 2022, 'Veritabanı', 205),
+(306, 'Python Programlama', 'Fatma Çelik', 48, 2020, 'Programlama', 206),
+(307, 'Web Tasarımı', 'Hakan Aksoy', 42, 2019, 'Grafik-Tasarım', 207),
+(308, 'Veri Analizi', 'Gizem Demirtaş', 65, 2021, 'Network', 208),
+(309, 'Java Başlangıç', 'Eren Bulut', 47, 2018, 'Programlama', 209),
+(310, 'İşletim Sistemleri', 'Deniz Güneş', 53, 2022, 'Genel', 210);
+
+-- Satislar Tablosuna Veri Ekleme
+INSERT INTO Satislar (SatNo, Tarih, Adet, KitapNo, MusteriNo) VALUES
+(401, '2023-01-15', 2, 301, 101),
+(402, '2023-02-20', 1, 302, 102),
+(403, '2023-03-25', 3, 303, 103),
+(404, '2023-04-10', 1, 304, 104),
+(405, '2023-05-05', 2, 305, 105),
+(406, '2023-06-12', 2, 306, 106),
+(407, '2023-07-18', 1, 307, 107),
+(408, '2023-08-22', 4, 308, 108),
+(409, '2023-09-30', 3, 309, 109),
+(410, '2023-10-05', 1, 310, 110);
+
+
+//5 tam dolu kayıt
+-- Iller Tablosuna Veri Ekleme
+INSERT INTO Iller (Ilkodu, IlAdi) VALUES
+(11, 'Gaziantep'),
+(12, 'Konya'),
+(13, 'Trabzon'),
+(14, 'Mersin'),
+(15, 'Edirne');
+
+-- Musteriler Tablosuna Veri Ekleme
+INSERT INTO Musteriler (MusteriNo, Ad, Soyad, Tel, Ilkodu) VALUES
+(111, 'Mustafa', 'Yıldız', '555-9988776', 11),
+(112, 'Seda', 'Aydın', '533-1122334', 12),
+(113, 'Ali', 'Çelik', '541-4455667', 13),
+(114, 'Ebru', 'Yılmaz', '505-7788990', 14),
+(115, 'Burak', 'Demir', '530-2233445', 15);
+
+-- Yayinevleri Tablosuna Veri Ekleme
+INSERT INTO Yayinevleri (YayineviNo, YayineviAdi, Yetkili, TEL, WEBADRESİ) VALUES
+(211, 'JKL Yayınevi', 'Gülay Ak', '555-3344556', 'www.jklyayinevi.com'),
+(212, 'MNO Yayınevi', 'Hüseyin Baş', '532-6677889', 'www.mnoyayinevi.com'),
+(213, 'PQS Yayınevi', 'Nilüfer Kaya', '541-9900112', 'www.pqsyayinevi.com'),
+(214, 'TUV Yayınevi', 'Serkan Çınar', '505-0011223', 'www.tuvyayinevi.com'),
+(215, 'WXYZ Yayınevi', 'Zeynep Güneş', '530-1122334', 'www.wxyzyayinevi.com');
+
+-- Kitaplar Tablosuna Veri Ekleme
+INSERT INTO Kitaplar (KitapNo, KitapAdi, YazarAdi, BirimFiyat, BasimYili, Kategori, YayineviNo) VALUES
+(311, 'C++ Programlama', 'Mustafa Yıldız', 55, 2021, 'Programlama', 211),
+(312, 'Web Geliştirme Temelleri', 'Seda Aydın', 45, 2020, 'Grafik-Tasarım', 212),
+(313, 'Veri Yapıları', 'Ali Çelik', 60, 2022, 'Network', 213),
+(314, 'Bilgisayar Ağları', 'Ebru Yılmaz', 50, 2019, 'Network', 214),
+(315, 'Python ile Veri Analizi', 'Burak Demir', 65, 2023, 'Programlama', 215);
+
+-- Satislar Tablosuna Veri Ekleme
+INSERT INTO Satislar (SatNo, Tarih, Adet, KitapNo, MusteriNo) VALUES
+(501, '2023-01-20', 2, 311, 111),
+(502, '2023-02-25', 1, 312, 112),
+(503, '2023-03-30', 3, 313, 113),
+(504, '2023-04-15', 1, 314, 114),
+(505, '2023-05-10', 2, 315, 115);
