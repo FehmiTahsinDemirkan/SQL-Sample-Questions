@@ -1,0 +1,81 @@
+
+1-Normalize edilmemiş bir başlangıç tablosu tasarlayınız. Daha sonra bu tablonun üzerinde 1NF ve 2NF normalizasyon kurallarını uygulayarak veritabanının son halini gösteriniz.
+  
+Aşağidaki sorularda Northwind veritabanı kullanılacaktır. 
+2-Customers tablosuna “RegistrationDate” isminde içine sadece tarih girilebilecek, sistem saattarih değerinden büyük olamayacak ve veri girişi yapılmazsa sistem saattarih değeri otomatik yazılacak olan bir alan için gerekli SQL kodunu yazınız. 
+ALTER TABLE Musteriler
+ADD RegistrationDate DATE DEFAULT GETDATE() CHECK (RegistrationDate <= GETDATE());
+
+3-Hiç satışı yapılmamış olan ürünlerin isimleri (Products-ProductName) ve tedarikçilerinin (Suppliers-CompanyName) isimleri listesini “Hic_Satilmayan_Urunler” isimli bir tablo oluşturup içine atacak olan SQL ifadesini yazınız. (Select ile tablo oluşturulacaktır.) 
+SELECT 
+    Urunler.UrunAdi AS ProductName,
+    Tedarikciler.SirketAdi AS CompanyName
+INTO Hic_Satilmayan_Urunler
+FROM 
+    Urunler
+LEFT JOIN 
+    SatisDetaylari ON Urunler.UrunID = SatisDetaylari.UrunID
+LEFT JOIN 
+    Satislar ON SatisDetaylari.SatisID = Satislar.SatisID
+LEFT JOIN 
+    Tedarikciler ON Urunler.TedarikciID = Tedarikciler.TedarikciID
+WHERE 
+    Satislar.SatisID IS NULL;
+
+4-Çalışan personellerin (Employees) doğum günlerinin (Birthdate) aylara göre dökümünü şekildeki gibi veren SQL ifadesini yazınız. 
+ 
+SELECT
+    MONTH(DogumTarihi) AS Ay,
+    COUNT(*) AS BuAydaDoganSayisi
+FROM
+    Personeller
+GROUP BY
+    MONTH(DogumTarihi)
+ORDER BY
+    Ay;
+
+5-Her siparişin (OrderID) hangi müşteri (Customers-ContactName) tarafından alındığı ve hangi kargo şirketiyle (Shippers-CompanyName) gönderileceği dökümünü veren SQL ifadesini yazınız. 
+ 
+SELECT
+    Satislar.SatisID AS SatisID,
+    Musteriler.MusteriAdi AS MusteriAdi,
+    Nakliyeciler.SirketAdi AS SirketAdi
+FROM
+    Satislar
+INNER JOIN
+    Musteriler ON Musteriler.MusteriID = Musteriler.MusteriID
+INNER JOIN
+    Nakliyeciler ON Nakliyeciler.SirketAdi = Nakliyeciler.SirketAdi;
+
+6-En az (sipariş sayısı olarak) hangi “ülkedeki” müşteriler (Customers-Country) tarafından sipariş verildiği bilgisini veren SQL ifadesini yazınız. (Sadece ülke ismi listelenecektir.) 
+SELECT
+    Musteriler.Ulke,
+    COUNT(*) AS SiparisSayisi
+FROM
+    Satislar
+JOIN
+    Musteriler ON Satislar.MusteriID = Musteriler.MusteriID
+GROUP BY
+    Musteriler.Ulke
+ORDER BY
+    SiparisSayisi ASC
+
+
+
+
+ 
+
+
+
+
+
+
+ 
+ 
+ 
+                     
+      
+ 
+ 
+
+
